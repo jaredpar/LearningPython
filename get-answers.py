@@ -2,6 +2,7 @@ import json
 import urllib2
 import gzip
 import time
+import calendar
 from datetime import date
 from StringIO import StringIO
 
@@ -20,11 +21,11 @@ class Answer(object):
 # Return a tuple of start time, end time for the query 
 def getTimeRange():
     startTime = time.strptime('2014 1 1', '%Y %m %d')
-    startTime = int(time.mktime(startTime))
+    startTime = int(calendar.timegm(startTime))
     endDay = date.today()
     endDayStr = '{0} {1} {2}'.format(endDay.year, endDay.month, endDay.day) 
     endTime = time.strptime(endDayStr, '%Y %m %d')
-    endTime = int(time.mktime(endTime))
+    endTime = int(calendar.timegm(endTime))
     return (startTime, endTime)
 
 # Build up the start and end date for the query 
