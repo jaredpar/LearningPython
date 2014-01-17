@@ -27,6 +27,12 @@ def dateToSecondsUtc(d):
     t = int(calendar.timegm(t))
     return t
 
+# Get the day which represents the start of the week 
+def getStartOfWeekSecondsUtc():
+    today = date.today()
+    sunday = today - timedelta(days=today.weekday() + 1)
+    return dateToSecondsUtc(sunday)
+
 # Return a tuple of start time, end time for the query 
 def getTimeRange():
     startTime = time.strptime('2014 1 1', '%Y %m %d')
@@ -49,6 +55,9 @@ def printStats(startTime, endtime, answerList):
     todayStartSeconds = dateToSecondsUtc(date.today())
     totalDay = sum(x.createdSeconds >= todayStartSeconds for x in answerList)
 
+    weekStartSeconds = getStartOfWeekSecondsUtc()
+    totalWeek = sum(x.createdSeconds >= weekStartSeconds for x in answerList)
+
     diff = date.today() - date(2014, 1, 1)
     days = diff.days
     weeks = days / 7.0
@@ -56,6 +65,7 @@ def printStats(startTime, endtime, answerList):
     averageWeek = float(totalYear) / weeks
     print '---'
     print 'Total Year: {0}'.format(totalYear)
+    print 'Total Week: {0}'.format(totalWeek)
     print 'Total Today: {0}'.format(totalDay)
     print 'Average Per Day: {0}'.format(averageDay)
     print 'Average Per Week: {0}'.format(averageWeek)
