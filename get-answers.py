@@ -35,7 +35,10 @@ def dateToSecondsUtc(d):
 # Get the day which represents the start of the week 
 def getStartOfWeekSecondsUtc():
     today = getTodayUtc()
-    sunday = today - timedelta(days=today.weekday() + 1)
+    if today.weekday() == 6: 
+        sunday = today
+    else:
+        sunday = today - timedelta(days=today.weekday() + 1)
     return dateToSecondsUtc(sunday)
 
 # Return a tuple of start time, end time for the query 
