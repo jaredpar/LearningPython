@@ -20,6 +20,12 @@ def show(sha1):
     with open(filePath) as f:
         bytes = f.read()
         data = zlib.decompress(bytes)
+        index = data.find('\0')
+        if index < 0: 
+            print 'invalid object format'
+            return
+
+        data = data[index + 1:]
 
     print data
 
