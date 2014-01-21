@@ -39,6 +39,30 @@ def printPack():
     # The test pack we are working with for now 
     packPath = r'C:\Users\jaredpar\Documents\GitHub\VsVim\.git\objects\pack\pack-1e4dcc41b28289effa674569532d4074f2c226ef.pack'
 
+    def parsePackEntry(f):
+        c = struct.unpack('b', f.read(1))[0]
+        type = (c >> 4) & 7
+        size = c & 15
+        shift = 4
+        while (c & 0x80) != 0:
+            if shift >= 32:
+                print 'Bad shift value'
+                return
+
+            c = struct.unpack('b', f.read(1))[0]
+            increment = (c & 0x7f) << shift
+            size += increment
+            shift += 7
+            print 'size {0}'.format(size)
+        print 'type {0} size {1}'.format(type, size)
+
+        bytes = f.read(size)
+        if type == 1 or type == 2 or type == 3: 
+            data = zlib.decompress(bytes)
+            print data
+        else:
+            print 'not analyzing data'
+
     with open(packPath, 'rb') as f:
 
         # Magic number 
@@ -51,8 +75,8 @@ def printPack():
         number = struct.unpack('>i', bytes)[0]
         print 'Number of items {0}'.format(number)
 
-        bytes = f.read(100)
-        print bytes.encode('hex')
+        for i in range(0, 4):
+            parsePackEntry(f)
 
 def printPackIndex():
     # The test pack index we are working with for now 
