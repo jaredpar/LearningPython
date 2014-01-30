@@ -4,6 +4,9 @@ import struct
 import sys
 from collections import namedtuple
 
+# Things to implement next
+#   hash-object
+
 # The test pack we are working with for now 
 testPackPath = r'C:\Users\jaredpar\Documents\GitHub\VsVim\.git\objects\pack\pack-1e4dcc41b28289effa674569532d4074f2c226ef.pack'
 testPackIndexPath = r'C:\Users\jaredpar\Documents\GitHub\VsVim\.git\objects\pack\pack-1e4dcc41b28289effa674569532d4074f2c226ef.idx'
@@ -11,6 +14,61 @@ testPackIndexPath = r'C:\Users\jaredpar\Documents\GitHub\VsVim\.git\objects\pack
 class Expando():
     pass
 
+def _parsePackIndex(packIndexPath):
+
+    # just assuming version 2 of the .idx format for now
+    # https://www.kernel.org/pub/software/scm/git/docs/technical/pack-format.txt
+
+    with open(packIndexPath, 'rb') as f:
+
+        # Magic number 
+        f.read(4) 
+
+        # Version number
+        f.read(4)
+
+        total = 0
+        for x in range(0, 256):
+            bytes = f.read(4)
+            number = struct.unpack('>i', bytes)[0]
+
+            # print "{0} - {1}".format(x, number)
+            total = number
+
+        # Read in all of the SHA1 values 
+        entryList = []
+        for x in range(0, total):
+            name = f.read(20)
+            sha1 = ''
+            for b in name:
+                sha1 += b.encode('hex')
+            entry = Expando()
+            entry.sha1 = sha1
+            entry.offset = ''
+            entry.crc32 = ''
+            entryList.append(entry)
+
+        # Read in all of the CRC32 values
+        for x in range(0, total): 
+            bytes = f.read(4)
+            number = struct.unpack('>i', bytes)[0]
+            entryList[x].crc32 = number
+
+        # Read in all of the offsets
+        for x in range(0, total):
+            bytes = f.read(4)
+            number = struct.unpack('>i', bytes)[0]
+            entryList[x].offset = number
+
+        # TODO: Need to read the 8 byte offset table if any of the high bits were
+        # set in the offset table
+
+        # Closing SHA1 signature pairs
+        f.read(40)
+
+        return entryList
+
+# This is an implementation of the git show command 
 def show(sha1):
     prefix = sha1[0:2]
     suffix = sha1[2:]
@@ -104,62 +162,8 @@ def printPack():
         for i in range(0, 4):
             parsePackEntry(f)
 
-def parsePackIndex():
-
-    # just assuming version 2 of the .idx format for now
-    # https://www.kernel.org/pub/software/scm/git/docs/technical/pack-format.txt
-
-    with open(testPackIndexPath, 'rb') as f:
-
-        # Magic number 
-        f.read(4) 
-
-        # Version number
-        f.read(4)
-
-        total = 0
-        for x in range(0, 256):
-            bytes = f.read(4)
-            number = struct.unpack('>i', bytes)[0]
-
-            # print "{0} - {1}".format(x, number)
-            total = number
-
-        # Read in all of the SHA1 values 
-        entryList = []
-        for x in range(0, total):
-            name = f.read(20)
-            sha1 = ''
-            for b in name:
-                sha1 += b.encode('hex')
-            entry = Expando()
-            entry.sha1 = sha1
-            entry.offset = ''
-            entry.crc32 = ''
-            entryList.append(entry)
-
-        # Read in all of the CRC32 values
-        for x in range(0, total): 
-            bytes = f.read(4)
-            number = struct.unpack('>i', bytes)[0]
-            entryList[x].crc32 = number
-
-        # Read in all of the offsets
-        for x in range(0, total):
-            bytes = f.read(4)
-            number = struct.unpack('>i', bytes)[0]
-            entryList[x].offset = number
-
-        # TODO: Need to read the 8 byte offset table if any of the high bits were
-        # set in the offset table
-
-        # Closing SHA1 signature pairs
-        f.read(40)
-
-        return entryList
-
-def printPackIndex():
-    entryList = parsePackIndex()
+def printPackIndex(packIndexPath):
+    entryList = _parsePackIndex(packIndexPath)
     entryList.sort(key=lambda x: x.offset)
     for entry in entryList:
         print '{0} - {1} - {2}'.format(entry.sha1, entry.offset, entry.crc32)
@@ -174,7 +178,7 @@ def printPackIndex():
 
 def testIt():
     with open(testPackPath, 'rb') as f:
-        entryList = parsePackIndex()
+        entryList = _parsePackIndex(testPackIndexPath)
         for i in range(0, 5): 
             entry = entryList[i]
             print entry.sha1
