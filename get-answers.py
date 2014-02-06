@@ -7,6 +7,7 @@ import datetime
 from datetime import date
 from datetime import timedelta
 from StringIO import StringIO
+from sys import stdout
 
 #tempUrl = 'http://api.stackexchange.com/2.1/users/23283/answers?fromdate=1389312000&order=desc&sort=activity&site=stackoverflow'
 #myUrl = 'http://api.stackexchange.com/2.1/users/23282/answers?site=stackoverflow'
@@ -84,8 +85,10 @@ def getAnswerList(startTime, endTime):
     page = 1
     done = False
     answerList = []
+    stdout.write('Getting pages ')
     while not done:
-        print 'Getting page {0}'.format(page) 
+        stdout.write('.')
+        stdout.flush()
         apiUrl = getApiUrl(dateRange[0], dateRange[1], page)
         response = urllib2.urlopen(apiUrl)
         if response.info().get('Content-Encoding') == 'gzip':
@@ -105,6 +108,7 @@ def getAnswerList(startTime, endTime):
         else:
             page = page + 1
 
+    stdout.write('\n')
     return answerList
 
 dateRange = getTimeRange()
