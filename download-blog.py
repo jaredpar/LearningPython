@@ -1,13 +1,30 @@
 import urllib2
-
+import os
 """ 
 This script is used to download the contents of my blog at 
 http://blogs.msdn.com/b/jaredpar
 """
 
+os.mkdir("_posts")
 #mkdir "_posts"
 
+def url_to_name(url):
+    """
+    The format of URL is 
+    
+        b/jaredpar/archive/2014/01/06/interviewing-college-candidates.aspx
+
+    """
+
+    target = "archive/"
+    startIndex = url.find(target) + len(target)
+    name = url[startIndex:]
+    return name.replace('/','-')
+
+
 def download_post(url):
+
+    print "Processing {0}".format(url)
     fullUrl = 'http://blogs.msdn.com/'  + url
     response = urllib2.urlopen(fullUrl)
     html = response.read()
@@ -17,10 +34,11 @@ def download_post(url):
     endIndex = html.find('<div class="post-attachment-viewer">', startIndex)
     text = html[startIndex:endIndex]
 
-    print text
+    name = url_to_name(url)
+    fullName = "_posts/{0}".format(name)
+    with open(fullName, 'w') as f:
+        f.write(text)
 
-
-done = False
 for i in range(1, 13):
     print ('Page {0}'.format(i))
 
@@ -39,10 +57,6 @@ for i in range(1, 13):
         else:
             endIndex = html.find('"', startIndex)
             link = html[startIndex:endIndex]
-            print link
             nextIndex = endIndex + 1
-
-            if done == False:
-                download_post(link)
-                done = True
+            download_post(link)
 
