@@ -5,6 +5,22 @@ This script is used to download the contents of my blog at
 http://blogs.msdn.com/b/jaredpar
 """
 
+#mkdir "_posts"
+
+def download_post(url):
+    fullUrl = 'http://blogs.msdn.com/'  + url
+    response = urllib2.urlopen(fullUrl)
+    html = response.read()
+
+    header = '<div class="post-content user-defined-markup">'
+    startIndex = html.find(header) + len(header)
+    endIndex = html.find('<div class="post-attachment-viewer">', startIndex)
+    text = html[startIndex:endIndex]
+
+    print text
+
+
+done = False
 for i in range(1, 13):
     print ('Page {0}'.format(i))
 
@@ -25,4 +41,8 @@ for i in range(1, 13):
             link = html[startIndex:endIndex]
             print link
             nextIndex = endIndex + 1
+
+            if done == False:
+                download_post(link)
+                done = True
 
